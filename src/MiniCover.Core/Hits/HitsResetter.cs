@@ -2,6 +2,7 @@
 using System.IO.Abstractions;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using MiniCover.HitServices;
 
 namespace MiniCover.Core.Hits
 {
@@ -18,6 +19,8 @@ namespace MiniCover.Core.Hits
         public bool ResetHits(IDirectoryInfo hitsDirectory)
         {
             _logger.LogInformation("Resetting hits directory '{directory}'", hitsDirectory.FullName);
+
+            HitContextStorage.Clear(hitsDirectory.FullName);
 
             var hitsFiles = hitsDirectory.Exists
                 ? hitsDirectory.GetFiles("*.hits")
