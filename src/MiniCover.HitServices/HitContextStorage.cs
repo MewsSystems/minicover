@@ -15,14 +15,14 @@ namespace MiniCover.HitServices
             {
                 var fileName = Path.Combine(hitsPath, $"{hitContext.Id}.hits");
 
-                if (!_storage.TryGetValue(fileName, out var stream))
+                if (_storage.TryGetValue(fileName, out var oldStream))
                 {
-                    stream = new MemoryStream();
-                    _storage[fileName] = stream;
+                    oldStream.Dispose();
                 }
 
+                var stream = new MemoryStream();
+                _storage[fileName] = stream;
                 hitContext.Serialize(stream);
-                stream.Flush();
             }
         }
 
