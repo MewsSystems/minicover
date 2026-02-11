@@ -7,22 +7,14 @@ namespace MiniCover.HitServices
 {
     public static class HitContextStorage
     {
-        private static readonly Dictionary<string, MemoryStream> _storage = new Dictionary<string, MemoryStream>();
+        private static readonly Dictionary<string, HitContext> _storage = new Dictionary<string, HitContext>();
 
         public static void Save(HitContext hitContext, string hitsPath)
         {
             lock (_storage)
             {
                 var fileName = Path.Combine(hitsPath, $"{hitContext.Id}.hits");
-
-                if (_storage.TryGetValue(fileName, out var oldStream))
-                {
-                    oldStream.Dispose();
-                }
-
-                var stream = new MemoryStream();
-                _storage[fileName] = stream;
-                hitContext.Serialize(stream);
+                _storage[fileName] = hitContext;
             }
         }
 
@@ -37,16 +29,11 @@ namespace MiniCover.HitServices
                                throw new InvalidOperationException($"Cannot get directory name for {fileName}.");
                     Directory.CreateDirectory(path);
 
-                    var memoryStream = kvp.Value;
-
-                    using (var fileStream = File.Open(fileName, FileMode.Append))
+                    using (var fileStream = File.Open(fileName, FileMode.Create))
                     {
-                        memoryStream.Seek(0, SeekOrigin.Begin);
-                        memoryStream.CopyTo(fileStream);
+                        kvp.Value.Serialize(fileStream);
                         fileStream.Flush();
                     }
-
-                    memoryStream.Dispose();
                 }
 
                 _storage.Clear();
@@ -57,10 +44,6 @@ namespace MiniCover.HitServices
         {
             lock (_storage)
             {
-                foreach (var kvp in _storage)
-                {
-                    kvp.Value.Dispose();
-                }
                 var hitsDirectory = new DirectoryInfo(hitsPath);
 
                 var hitsFiles = hitsDirectory.Exists
