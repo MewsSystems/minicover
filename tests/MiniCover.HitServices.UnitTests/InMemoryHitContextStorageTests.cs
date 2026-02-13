@@ -22,7 +22,7 @@ namespace MiniCover.HitServices.UnitTests
 
             try
             {
-                                var context = new HitContext("asm", "cls", "method", new Dictionary<int, int> { { 1, 5 } });
+                var context = new HitContext("asm", "cls", "method", new Dictionary<int, int> { { 1, 5 } });
 
                 _sut.Save(context, tmpDir);
                 Directory.Exists(tmpDir).Should().BeFalse("Save should not write to disk");
@@ -53,7 +53,7 @@ namespace MiniCover.HitServices.UnitTests
 
             try
             {
-                                _sut.Save(new HitContext("asm", "cls", "m", new Dictionary<int, int> { { 1, 1 } }), tmpDir);
+                _sut.Save(new HitContext("asm", "cls", "m", new Dictionary<int, int> { { 1, 1 } }), tmpDir);
 
                 _sut.Flush();
 
@@ -79,7 +79,7 @@ namespace MiniCover.HitServices.UnitTests
 
             try
             {
-                                var context = new HitContext("asm", "cls", "m", new Dictionary<int, int> { { 1, 1 } });
+                var context = new HitContext("asm", "cls", "m", new Dictionary<int, int> { { 1, 1 } });
 
                 _sut.Save(context, tmpDir);
                 context.RecordHit(2);
@@ -110,7 +110,7 @@ namespace MiniCover.HitServices.UnitTests
 
             try
             {
-                                _sut.Save(new HitContext("asm", "cls", "m", new Dictionary<int, int> { { 1, 1 } }), tmpDir);
+                _sut.Save(new HitContext("asm", "cls", "m", new Dictionary<int, int> { { 1, 1 } }), tmpDir);
 
                 _sut.Clear(tmpDir);
                 _sut.Flush();
@@ -131,7 +131,7 @@ namespace MiniCover.HitServices.UnitTests
 
             try
             {
-                                var c1 = new HitContext("asm", "cls", "m1", new Dictionary<int, int> { { 1, 1 } });
+                var c1 = new HitContext("asm", "cls", "m1", new Dictionary<int, int> { { 1, 1 } });
                 var c2 = new HitContext("asm", "cls", "m2", new Dictionary<int, int> { { 2, 2 } });
 
                 _sut.Save(c1, tmpDir);
