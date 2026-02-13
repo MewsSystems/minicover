@@ -30,6 +30,12 @@ namespace MiniCover.HitServices
             }
         }
 
+        /// <summary>
+        /// Writes all stored contexts to disk and clears the dictionary.
+        /// The lock is held during I/O intentionally — Flush runs once after tests complete,
+        /// not concurrently with Save. On partial failure, already-written entries remain in
+        /// the dictionary (FileMode.Create makes rewrites idempotent), so Flush can be retried.
+        /// </summary>
         public void Flush()
         {
             lock (_storage)
