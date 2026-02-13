@@ -13,6 +13,8 @@ namespace MiniCover.HitServices.UnitTests
     // (random temp dirs) and self-cleaning (try/finally).
     public class InMemoryHitContextStorageTests
     {
+        private readonly InMemoryHitContextStorage _sut = new InMemoryHitContextStorage(new FileHitContextStorage());
+
         [Fact]
         public void FlushShouldWriteHitsFilesToDisk()
         {
@@ -20,13 +22,12 @@ namespace MiniCover.HitServices.UnitTests
 
             try
             {
-                var sut = new InMemoryHitContextStorage();
-                var context = new HitContext("asm", "cls", "method", new Dictionary<int, int> { { 1, 5 } });
+                                var context = new HitContext("asm", "cls", "method", new Dictionary<int, int> { { 1, 5 } });
 
-                sut.Save(context, tmpDir);
+                _sut.Save(context, tmpDir);
                 Directory.Exists(tmpDir).Should().BeFalse("Save should not write to disk");
 
-                sut.Flush();
+                _sut.Flush();
 
                 var files = Directory.GetFiles(tmpDir, "*.hits");
                 files.Should().HaveCount(1);
@@ -52,16 +53,15 @@ namespace MiniCover.HitServices.UnitTests
 
             try
             {
-                var sut = new InMemoryHitContextStorage();
-                sut.Save(new HitContext("asm", "cls", "m", new Dictionary<int, int> { { 1, 1 } }), tmpDir);
+                                _sut.Save(new HitContext("asm", "cls", "m", new Dictionary<int, int> { { 1, 1 } }), tmpDir);
 
-                sut.Flush();
+                _sut.Flush();
 
                 // Second flush should produce no additional files
                 var filesBefore = Directory.GetFiles(tmpDir, "*.hits");
                 foreach (var f in filesBefore) File.Delete(f);
 
-                sut.Flush();
+                _sut.Flush();
 
                 Directory.GetFiles(tmpDir, "*.hits").Should().BeEmpty();
             }
@@ -79,14 +79,13 @@ namespace MiniCover.HitServices.UnitTests
 
             try
             {
-                var sut = new InMemoryHitContextStorage();
-                var context = new HitContext("asm", "cls", "m", new Dictionary<int, int> { { 1, 1 } });
+                                var context = new HitContext("asm", "cls", "m", new Dictionary<int, int> { { 1, 1 } });
 
-                sut.Save(context, tmpDir);
+                _sut.Save(context, tmpDir);
                 context.RecordHit(2);
-                sut.Save(context, tmpDir);
+                _sut.Save(context, tmpDir);
 
-                sut.Flush();
+                _sut.Flush();
 
                 var files = Directory.GetFiles(tmpDir, "*.hits");
                 files.Should().HaveCount(1, "same context id should produce one file");
@@ -111,11 +110,10 @@ namespace MiniCover.HitServices.UnitTests
 
             try
             {
-                var sut = new InMemoryHitContextStorage();
-                sut.Save(new HitContext("asm", "cls", "m", new Dictionary<int, int> { { 1, 1 } }), tmpDir);
+                                _sut.Save(new HitContext("asm", "cls", "m", new Dictionary<int, int> { { 1, 1 } }), tmpDir);
 
-                sut.Clear(tmpDir);
-                sut.Flush();
+                _sut.Clear(tmpDir);
+                _sut.Flush();
 
                 Directory.Exists(tmpDir).Should().BeFalse("nothing should be flushed after clear");
             }
@@ -133,13 +131,12 @@ namespace MiniCover.HitServices.UnitTests
 
             try
             {
-                var sut = new InMemoryHitContextStorage();
-                var c1 = new HitContext("asm", "cls", "m1", new Dictionary<int, int> { { 1, 1 } });
+                                var c1 = new HitContext("asm", "cls", "m1", new Dictionary<int, int> { { 1, 1 } });
                 var c2 = new HitContext("asm", "cls", "m2", new Dictionary<int, int> { { 2, 2 } });
 
-                sut.Save(c1, tmpDir);
-                sut.Save(c2, tmpDir);
-                sut.Flush();
+                _sut.Save(c1, tmpDir);
+                _sut.Save(c2, tmpDir);
+                _sut.Flush();
 
                 Directory.GetFiles(tmpDir, "*.hits").Should().HaveCount(2);
             }
