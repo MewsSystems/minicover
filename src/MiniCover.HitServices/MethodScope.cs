@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 
 namespace MiniCover.HitServices
 {
@@ -59,7 +58,7 @@ namespace MiniCover.HitServices
                 if (_hitContext.Hits.Count == 0)
                     return;
 
-                HitContextStorage.Save(_hitContext, _hitsPath);
+                HitService.HitContextStorage.Save(_hitContext, _hitsPath);
             }
         }
     }
