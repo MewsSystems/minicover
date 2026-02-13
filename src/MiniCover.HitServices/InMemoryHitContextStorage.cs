@@ -4,6 +4,10 @@ using System.IO;
 
 namespace MiniCover.HitServices
 {
+    /// <summary>
+    /// Stores HitContext references (not copies). Flush serializes the final state
+    /// of each context, including any hits recorded after Save.
+    /// </summary>
     public class InMemoryHitContextStorage : IHitContextStorage
     {
         private readonly Dictionary<string, HitContext> _storage = new Dictionary<string, HitContext>();
