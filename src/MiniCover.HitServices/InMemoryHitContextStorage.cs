@@ -3,9 +3,8 @@ using System.Collections.Generic;
 namespace MiniCover.HitServices
 {
     /// <summary>
-    /// Buffering decorator over <see cref="IHitContextStorage"/>. Stores HitContext references
-    /// (not copies) in memory during Save, then delegates to the inner storage on Flush.
-    /// Flush serializes the final state of each context, including any hits recorded after Save.
+    /// Buffering decorator over <see cref="IHitContextStorage"/>. Snapshots HitContext data
+    /// in memory during Save, then delegates to the inner storage on Flush.
     /// </summary>
     public class InMemoryHitContextStorage : IHitContextStorage
     {
@@ -20,9 +19,16 @@ namespace MiniCover.HitServices
 
         public void Save(HitContext hitContext, string hitsPath)
         {
+            var snapshot = new HitContext(
+                hitContext.Id,
+                hitContext.AssemblyName,
+                hitContext.ClassName,
+                hitContext.MethodName,
+                hitContext.Hits);
+
             lock (_storage)
             {
-                _storage[hitContext.Id] = (hitContext, hitsPath);
+                _storage[snapshot.Id] = (snapshot, hitsPath);
             }
         }
 
