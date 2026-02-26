@@ -24,8 +24,18 @@ namespace MiniCover.HitServices
             string className,
             string methodName,
             IDictionary<int, int> hits = null)
+            : this(Guid.NewGuid().ToString(), assemblyName, className, methodName, hits)
         {
-            Id = Guid.NewGuid().ToString();
+        }
+
+        internal HitContext(
+            string id,
+            string assemblyName,
+            string className,
+            string methodName,
+            IDictionary<int, int> hits)
+        {
+            Id = id;
             AssemblyName = assemblyName;
             ClassName = className;
             MethodName = methodName;

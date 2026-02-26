@@ -1,7 +1,9 @@
-﻿namespace MiniCover.HitServices
+namespace MiniCover.HitServices
 {
     public static class HitService
     {
+        public static IHitContextStorage HitContextStorage { get; set; } = new FileHitContextStorage();
+
         public static MethodScope EnterMethod(
             string hitsPath,
             string assemblyName,
