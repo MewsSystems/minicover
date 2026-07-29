@@ -5,8 +5,10 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using MiniCover.CommandLine;
 using MiniCover.CommandLine.Options;
+using MiniCover.Core.Extensions;
 using MiniCover.Core.Instrumentation;
 using MiniCover.Core.Model;
 using MiniCover.Exceptions;
@@ -28,7 +30,9 @@ namespace MiniCover.Commands
         private readonly ExcludeTestsPatternOption _excludeTestsOption;
         private readonly HitsDirectoryOption _hitsDirectoryOption;
         private readonly CoverageFileOption _coverageFileOption;
+        private readonly FailOnSkippedAssembliesOption _failOnSkippedAssembliesOption;
         private readonly IInstrumenter _instrumenter;
+        private readonly ILogger<InstrumentCommand> _logger;
 
         public InstrumentCommand(IServiceProvider serviceProvider,
             VerbosityOption verbosityOption,
@@ -42,7 +46,9 @@ namespace MiniCover.Commands
             ExcludeTestsPatternOption excludeTestsOption,
             HitsDirectoryOption hitsDirectoryOption,
             CoverageFileOption coverageFileOption,
-            IInstrumenter instrumenter)
+            FailOnSkippedAssembliesOption failOnSkippedAssembliesOption,
+            IInstrumenter instrumenter,
+            ILogger<InstrumentCommand> logger)
         {
             _serviceProvider = serviceProvider;
             _verbosityOption = verbosityOption;
@@ -56,7 +62,9 @@ namespace MiniCover.Commands
             _excludeTestsOption = excludeTestsOption;
             _hitsDirectoryOption = hitsDirectoryOption;
             _coverageFileOption = coverageFileOption;
+            _failOnSkippedAssembliesOption = failOnSkippedAssembliesOption;
             _instrumenter = instrumenter;
+            _logger = logger;
         }
 
         public string CommandName => "instrument";
@@ -73,7 +81,8 @@ namespace MiniCover.Commands
             _includeTestsOption,
             _excludeTestsOption,
             _hitsDirectoryOption,
-            _coverageFileOption
+            _coverageFileOption,
+            _failOnSkippedAssembliesOption
         };
 
         public Task<int> Execute()
@@ -101,6 +110,23 @@ namespace MiniCover.Commands
 
             var coverageFile = _coverageFileOption.FileInfo;
             SaveCoverageFile(coverageFile, result);
+
+            if (_failOnSkippedAssembliesOption.Value)
+            {
+                var problematicSkips = result.SkippedAssemblies
+                    .Where(s => s.Reason.IndicatesInstrumentationProblem())
+                    .ToArray();
+
+                if (problematicSkips.Length != 0)
+                {
+                    foreach (var skip in problematicSkips)
+                    {
+                        _logger.LogError("Assembly {assemblyFile} was not instrumented: {reason}", skip.AssemblyFile, skip.Reason.ToString());
+                    }
+
+                    return Task.FromResult(1);
+                }
+            }
 
             return Task.FromResult(0);
         }

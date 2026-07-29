@@ -50,6 +50,7 @@ It is based on the following main options:
 |**exclude-tests**|exceptions to tests option|glob|`**/bin/**/*.cs` and `**/obj/**/*.cs`|
 |**assemblies**|assemblies considered for instrumentation|glob|`**/*.dll`|
 |**exclude-assemblies**|Exceptions to assemblies option|glob|`**/obj/**/*.dll`|
+|**fail-on-skipped-assemblies**|Fail this command (non-zero exit code) if some assemblies could not be instrumented for an unexpected reason, e.g. their source files changed while instrumenting|flag|`false`|
 
 *Note 1: Assemblies not related to sources or tests are automatically ignored.*
 
