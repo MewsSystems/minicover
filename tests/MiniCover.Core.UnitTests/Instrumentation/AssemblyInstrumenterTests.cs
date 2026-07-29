@@ -38,8 +38,7 @@ namespace MiniCover.Core.UnitTests.Instrumentation
             _tempDir = Path.Join(Path.GetTempPath(), $"minicover-tests-{runId}");
             Directory.CreateDirectory(_tempDir);
 
-            // Separate from _tempDir (our Workdir) so fixtures compiled here reproduce a
-            // third-party assembly's document: a path that was never part of our checkout.
+            // Outside _tempDir (our Workdir), simulating a third-party assembly's document.
             _foreignDir = Path.Join(Path.GetTempPath(), $"minicover-tests-{runId}-foreign");
             Directory.CreateDirectory(_foreignDir);
         }
@@ -96,9 +95,6 @@ namespace MiniCover.Core.UnitTests.Instrumentation
         [Fact]
         public void WithSourceOutsideWorkdir_ReturnsNothingToInstrumentSkip()
         {
-            // Reproduces a real third-party assembly: its embedded PDB references a document
-            // whose path (e.g. from the package author's own build machine) was never part of
-            // our checkout - it doesn't even fall under our workdir, let alone match Sources/Tests.
             var (assemblyFile, _) = CompileFixtureAssembly("Fixture5", sourceDir: _foreignDir);
 
             var context = CreateContext(Array.Empty<string>());
@@ -112,10 +108,6 @@ namespace MiniCover.Core.UnitTests.Instrumentation
         [Fact]
         public void WhenOwnSourceFileDeletedSinceCompilation_ReturnsSourceFilesChangedSkip()
         {
-            // A document under our own workdir that has simply gone missing (the actual
-            // incident this ticket is about) must still be treated as a real problem - it
-            // shouldn't look like the benign "foreign, never-checked-out document" case just
-            // because it's absent from disk right now.
             var (assemblyFile, sourceFile) = CompileFixtureAssembly("Fixture6");
             File.Delete(sourceFile.FullName);
 

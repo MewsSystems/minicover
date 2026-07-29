@@ -37,15 +37,20 @@ namespace MiniCover.Core.Instrumentation
 
         public virtual bool IsKnownDocument(Document document)
         {
-            // Membership in Sources/Tests can't be used here: those lists are built by globbing
-            // files that currently exist on disk, so a document belonging to our own workdir that
-            // has simply gone missing (the actual incident this ticket is about) would wrongly
-            // look identical to a third-party assembly's foreign, never-checked-out document.
-            // Whether a path falls under our workdir is existence-independent and distinguishes
-            // the two correctly: a document we own can vanish and still be "ours" to worry about,
-            // while a NuGet package's original build-machine path never is.
+            // A non-rooted document.Url (e.g. a Windows-authored path on Linux, where it isn't
+            // recognized as rooted) must not reach GetRelativePath: it resolves non-rooted paths
+            // against the process's current directory rather than against Workdir, which would
+            // wrongly resolve it to somewhere inside Workdir. Our own Sources/Tests are always
+            // rooted, so a non-rooted document.Url can never be one of ours.
+            if (!Path.IsPathRooted(document.Url))
+                return false;
+
+            // Existence-independent on purpose: Sources/Tests only list files that currently
+            // exist, which would wrongly exclude a workdir file that's simply missing right now.
             var relativePath = Path.GetRelativePath(Workdir.FullName, document.Url);
-            return !relativePath.StartsWith("..") && !Path.IsPathRooted(relativePath);
+            return relativePath != ".."
+                && !relativePath.StartsWith(".." + Path.DirectorySeparatorChar)
+                && !Path.IsPathRooted(relativePath);
         }
     }
 }

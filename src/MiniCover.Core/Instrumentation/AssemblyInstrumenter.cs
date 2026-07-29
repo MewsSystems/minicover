@@ -68,10 +68,9 @@ namespace MiniCover.Core.Instrumentation
 
             var assemblyDocuments = assemblyDefinition.GetAllDocuments();
 
-            // Only documents we actually track (Sources/Tests) can be meaningfully compared for
-            // changes. A third-party assembly's portable PDB commonly references paths from the
-            // package author's own build machine, which never exist locally - that's not a real
-            // "source changed" problem, just a document we were never going to instrument anyway.
+            // Skip documents outside our workdir (e.g. a NuGet package's own build paths) -
+            // they were never going to be instrumented anyway, so a missing/changed file there
+            // isn't a real problem.
             var changedDocuments = assemblyDocuments
                 .Where(context.IsKnownDocument)
                 .Where(d => d.FileHasChanged())
