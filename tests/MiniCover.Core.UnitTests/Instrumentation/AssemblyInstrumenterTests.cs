@@ -20,6 +20,7 @@ namespace MiniCover.Core.UnitTests.Instrumentation
     public class AssemblyInstrumenterTests : IDisposable
     {
         private readonly string _tempDir;
+        private readonly string _foreignDir;
         private readonly IFileSystem _fileSystem;
         private readonly IAssemblyInstrumenter _assemblyInstrumenter;
 
@@ -33,13 +34,19 @@ namespace MiniCover.Core.UnitTests.Instrumentation
             _fileSystem = serviceProvider.GetRequiredService<IFileSystem>();
             _assemblyInstrumenter = serviceProvider.GetRequiredService<IAssemblyInstrumenter>();
 
-            _tempDir = Path.Join(Path.GetTempPath(), $"minicover-tests-{Environment.CurrentManagedThreadId}-{Environment.TickCount64}");
+            var runId = $"{Environment.CurrentManagedThreadId}-{Environment.TickCount64}";
+            _tempDir = Path.Join(Path.GetTempPath(), $"minicover-tests-{runId}");
             Directory.CreateDirectory(_tempDir);
+
+            // Outside _tempDir (our Workdir), simulating a third-party assembly's document.
+            _foreignDir = Path.Join(Path.GetTempPath(), $"minicover-tests-{runId}-foreign");
+            Directory.CreateDirectory(_foreignDir);
         }
 
         public void Dispose()
         {
             Directory.Delete(_tempDir, true);
+            Directory.Delete(_foreignDir, true);
         }
 
         [Fact]
@@ -86,6 +93,33 @@ namespace MiniCover.Core.UnitTests.Instrumentation
         }
 
         [Fact]
+        public void WithSourceOutsideWorkdir_ReturnsNothingToInstrumentSkip()
+        {
+            var (assemblyFile, _) = CompileFixtureAssembly("Fixture5", sourceDir: _foreignDir);
+
+            var context = CreateContext(Array.Empty<string>());
+
+            var outcome = _assemblyInstrumenter.InstrumentAssemblyFile(context, assemblyFile);
+
+            outcome.Assembly.Should().BeNull();
+            outcome.SkipReason.Should().Be(InstrumentationSkipReason.NothingToInstrument);
+        }
+
+        [Fact]
+        public void WhenOwnSourceFileDeletedSinceCompilation_ReturnsSourceFilesChangedSkip()
+        {
+            var (assemblyFile, sourceFile) = CompileFixtureAssembly("Fixture6");
+            File.Delete(sourceFile.FullName);
+
+            var context = CreateContext(new[] { sourceFile.FullName });
+
+            var outcome = _assemblyInstrumenter.InstrumentAssemblyFile(context, assemblyFile);
+
+            outcome.Assembly.Should().BeNull();
+            outcome.SkipReason.Should().Be(InstrumentationSkipReason.SourceFilesChanged);
+        }
+
+        [Fact]
         public void WhenAlreadyInstrumented_ReturnsAlreadyInstrumentedSkip()
         {
             var (assemblyFile, sourceFile) = CompileFixtureAssembly("Fixture4");
@@ -103,9 +137,9 @@ namespace MiniCover.Core.UnitTests.Instrumentation
             secondOutcome.SkipReason.Should().Be(InstrumentationSkipReason.AlreadyInstrumented);
         }
 
-        private (IFileInfo assemblyFile, IFileInfo sourceFile) CompileFixtureAssembly(string className)
+        private (IFileInfo assemblyFile, IFileInfo sourceFile) CompileFixtureAssembly(string className, string sourceDir = null)
         {
-            var sourcePath = Path.Join(_tempDir, $"{className}.cs");
+            var sourcePath = Path.Join(sourceDir ?? _tempDir, $"{className}.cs");
             var assemblyPath = Path.Join(_tempDir, $"{className}.dll");
             var pdbPath = Path.Join(_tempDir, $"{className}.pdb");
 

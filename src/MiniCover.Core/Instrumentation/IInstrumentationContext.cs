@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO.Abstractions;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace MiniCover.Core.Instrumentation
 {
@@ -12,5 +13,8 @@ namespace MiniCover.Core.Instrumentation
         int NewInstructionId();
         bool IsSource(MethodDefinition methodDefinition);
         bool IsTest(MethodDefinition methodDefinition);
+
+        /// <summary>True if this document's path falls under our workdir.</summary>
+        bool IsKnownDocument(Document document);
     }
 }

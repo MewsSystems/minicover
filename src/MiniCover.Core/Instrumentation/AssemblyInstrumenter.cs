@@ -68,7 +68,13 @@ namespace MiniCover.Core.Instrumentation
 
             var assemblyDocuments = assemblyDefinition.GetAllDocuments();
 
-            var changedDocuments = assemblyDocuments.Where(d => d.FileHasChanged()).ToArray();
+            // Skip documents outside our workdir (e.g. a NuGet package's own build paths) -
+            // they were never going to be instrumented anyway, so a missing/changed file there
+            // isn't a real problem.
+            var changedDocuments = assemblyDocuments
+                .Where(context.IsKnownDocument)
+                .Where(d => d.FileHasChanged())
+                .ToArray();
             if (changedDocuments.Length != 0)
             {
                 if (_logger.IsEnabled(LogLevel.Debug))
