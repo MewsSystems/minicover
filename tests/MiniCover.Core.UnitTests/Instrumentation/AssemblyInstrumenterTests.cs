@@ -33,7 +33,7 @@ namespace MiniCover.Core.UnitTests.Instrumentation
             _fileSystem = serviceProvider.GetRequiredService<IFileSystem>();
             _assemblyInstrumenter = serviceProvider.GetRequiredService<IAssemblyInstrumenter>();
 
-            _tempDir = Path.Combine(Path.GetTempPath(), $"minicover-tests-{Environment.CurrentManagedThreadId}-{Environment.TickCount64}");
+            _tempDir = Path.Join(Path.GetTempPath(), $"minicover-tests-{Environment.CurrentManagedThreadId}-{Environment.TickCount64}");
             Directory.CreateDirectory(_tempDir);
         }
 
@@ -105,9 +105,9 @@ namespace MiniCover.Core.UnitTests.Instrumentation
 
         private (IFileInfo assemblyFile, IFileInfo sourceFile) CompileFixtureAssembly(string className)
         {
-            var sourcePath = Path.Combine(_tempDir, $"{className}.cs");
-            var assemblyPath = Path.Combine(_tempDir, $"{className}.dll");
-            var pdbPath = Path.Combine(_tempDir, $"{className}.pdb");
+            var sourcePath = Path.Join(_tempDir, $"{className}.cs");
+            var assemblyPath = Path.Join(_tempDir, $"{className}.dll");
+            var pdbPath = Path.Join(_tempDir, $"{className}.pdb");
 
             // File.WriteAllText and CSharpSyntaxTree.ParseText must agree on encoding (no BOM), otherwise
             // the checksum embedded in the PDB won't match the one FileHasChanged() computes from disk.

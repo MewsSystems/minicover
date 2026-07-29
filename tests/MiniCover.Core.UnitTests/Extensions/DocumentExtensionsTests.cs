@@ -14,7 +14,7 @@ namespace MiniCover.UnitTests.Extensions
 
         public DocumentExtensionsTests()
         {
-            _file = Path.Combine(Path.GetTempPath(), $"minicover-{Environment.CurrentManagedThreadId}-{Environment.TickCount64}.cs");
+            _file = Path.Join(Path.GetTempPath(), $"minicover-{Environment.CurrentManagedThreadId}-{Environment.TickCount64}.cs");
             File.WriteAllText(_file, "class C {}");
         }
 
@@ -26,7 +26,7 @@ namespace MiniCover.UnitTests.Extensions
         [Fact]
         public void FileHasChanged_WhenFileMissing_ReturnsTrue()
         {
-            var document = new Document(Path.Combine(Path.GetTempPath(), "does-not-exist.cs"))
+            var document = new Document(Path.Join(Path.GetTempPath(), "does-not-exist.cs"))
             {
                 HashAlgorithm = DocumentHashAlgorithm.SHA256,
                 Hash = ComputeHash("class C {}")
@@ -38,7 +38,7 @@ namespace MiniCover.UnitTests.Extensions
         [Fact]
         public void FileHasChanged_WhenMissingGeneratedFile_ReturnsFalse()
         {
-            var document = new Document(Path.Combine(Path.GetTempPath(), "does-not-exist.g.cs"))
+            var document = new Document(Path.Join(Path.GetTempPath(), "does-not-exist.g.cs"))
             {
                 HashAlgorithm = DocumentHashAlgorithm.SHA256,
                 Hash = ComputeHash("class C {}")

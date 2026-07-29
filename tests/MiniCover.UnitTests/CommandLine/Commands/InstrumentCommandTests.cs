@@ -23,10 +23,10 @@ namespace MiniCover.UnitTests.CommandLine.Commands
 
         public InstrumentCommandTests()
         {
-            _tempDir = Path.Combine(Path.GetTempPath(), $"minicover-tests-{Environment.CurrentManagedThreadId}-{Environment.TickCount64}");
+            _tempDir = Path.Join(Path.GetTempPath(), $"minicover-tests-{Environment.CurrentManagedThreadId}-{Environment.TickCount64}");
             Directory.CreateDirectory(_tempDir);
-            File.WriteAllText(Path.Combine(_tempDir, "a.dll"), "dummy");
-            File.WriteAllText(Path.Combine(_tempDir, "a.cs"), "class C {}");
+            File.WriteAllText(Path.Join(_tempDir, "a.dll"), "dummy");
+            File.WriteAllText(Path.Join(_tempDir, "a.cs"), "class C {}");
 
             var fileSystem = new FileSystem();
 
@@ -57,10 +57,10 @@ namespace MiniCover.UnitTests.CommandLine.Commands
             excludeTestsOption.ReceiveValue(null);
 
             var hitsDirectoryOption = new HitsDirectoryOption(fileSystem);
-            hitsDirectoryOption.ReceiveValue(Path.Combine(_tempDir, "coverage-hits"));
+            hitsDirectoryOption.ReceiveValue(Path.Join(_tempDir, "coverage-hits"));
 
             var coverageFileOption = new CoverageFileOption(fileSystem);
-            coverageFileOption.ReceiveValue(Path.Combine(_tempDir, "coverage.json"));
+            coverageFileOption.ReceiveValue(Path.Join(_tempDir, "coverage.json"));
 
             _failOnSkippedAssembliesOption = new FailOnSkippedAssembliesOption();
 
