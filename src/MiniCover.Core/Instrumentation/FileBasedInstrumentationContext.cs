@@ -3,6 +3,7 @@ using System.IO.Abstractions;
 using System.Linq;
 using MiniCover.Core.Extensions;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace MiniCover.Core.Instrumentation
 {
@@ -31,6 +32,12 @@ namespace MiniCover.Core.Instrumentation
         {
             return methodDefinition.GetAllDocuments()
                 .Any(d => Tests.Any(s => s.FullName == d.Url));
+        }
+
+        public virtual bool IsKnownDocument(Document document)
+        {
+            return Sources.Any(s => s.FullName == document.Url)
+                || Tests.Any(t => t.FullName == document.Url);
         }
     }
 }

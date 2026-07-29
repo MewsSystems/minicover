@@ -86,6 +86,23 @@ namespace MiniCover.Core.UnitTests.Instrumentation
         }
 
         [Fact]
+        public void WithNoMatchingSourceAndSourceFileMissing_ReturnsNothingToInstrumentSkip()
+        {
+            // Reproduces a real third-party assembly: its embedded PDB references a document
+            // (e.g. a path from the package author's own build machine) that never exists
+            // locally and isn't one of our tracked Sources/Tests files.
+            var (assemblyFile, sourceFile) = CompileFixtureAssembly("Fixture5");
+            File.Delete(sourceFile.FullName);
+
+            var context = CreateContext(Array.Empty<string>());
+
+            var outcome = _assemblyInstrumenter.InstrumentAssemblyFile(context, assemblyFile);
+
+            outcome.Assembly.Should().BeNull();
+            outcome.SkipReason.Should().Be(InstrumentationSkipReason.NothingToInstrument);
+        }
+
+        [Fact]
         public void WhenAlreadyInstrumented_ReturnsAlreadyInstrumentedSkip()
         {
             var (assemblyFile, sourceFile) = CompileFixtureAssembly("Fixture4");
