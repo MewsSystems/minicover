@@ -121,7 +121,7 @@ namespace MiniCover.Commands
                 {
                     foreach (var skip in problematicSkips)
                     {
-                        _logger.LogError("Assembly {assemblyFile} was not instrumented: {reason}", skip.AssemblyFile, skip.Reason);
+                        _logger.LogError("Assembly {assemblyFile} was not instrumented: {reason}", skip.AssemblyFile, skip.Reason.ToString());
                     }
 
                     return Task.FromResult(1);
