@@ -94,12 +94,9 @@ namespace MiniCover.Core.Instrumentation
 
                 if (outcome.Assembly == null)
                 {
-                    if (outcome.SkipReason.HasValue)
+                    foreach (var assemblyFile in assemblyFiles)
                     {
-                        foreach (var assemblyFile in assemblyFiles)
-                        {
-                            result.AddSkippedAssembly(assemblyFile.FullName, outcome.SkipReason.Value);
-                        }
+                        result.AddSkippedAssembly(assemblyFile.FullName, outcome.SkipReason.Value);
                     }
 
                     return;
