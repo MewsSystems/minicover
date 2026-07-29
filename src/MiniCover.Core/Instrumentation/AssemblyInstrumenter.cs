@@ -34,7 +34,7 @@ namespace MiniCover.Core.Instrumentation
             _logger = logger;
         }
 
-        public InstrumentedAssembly InstrumentAssemblyFile(
+        public AssemblyInstrumentationOutcome InstrumentAssemblyFile(
             IInstrumentationContext context,
             IFileInfo assemblyFile)
         {
@@ -52,18 +52,18 @@ namespace MiniCover.Core.Instrumentation
             catch (BadImageFormatException)
             {
                 _logger.LogInformation("Invalid assembly format");
-                return null;
+                return AssemblyInstrumentationOutcome.Skipped(InstrumentationSkipReason.InvalidAssemblyFormat);
             }
         }
 
-        private InstrumentedAssembly InstrumentAssemblyDefinition(
+        private AssemblyInstrumentationOutcome InstrumentAssemblyDefinition(
             IInstrumentationContext context,
             AssemblyDefinition assemblyDefinition)
         {
             if (assemblyDefinition.CustomAttributes.Any(a => a.AttributeType.Name == "InstrumentedAttribute"))
             {
                 _logger.LogInformation("Already instrumented");
-                return null;
+                return AssemblyInstrumentationOutcome.Skipped(InstrumentationSkipReason.AlreadyInstrumented);
             }
 
             var assemblyDocuments = assemblyDefinition.GetAllDocuments();
@@ -80,7 +80,7 @@ namespace MiniCover.Core.Instrumentation
                 {
                     _logger.LogInformation("Source files has changed");
                 }
-                return null;
+                return AssemblyInstrumentationOutcome.Skipped(InstrumentationSkipReason.SourceFilesChanged);
             }
 
             var instrumentedAssembly = new InstrumentedAssembly(assemblyDefinition.Name.Name);
@@ -102,7 +102,7 @@ namespace MiniCover.Core.Instrumentation
 
             if (!instrumentedAssembly.Methods.Any()) {
                 _logger.LogInformation("Nothing to instrument");
-                return null;
+                return AssemblyInstrumentationOutcome.Skipped(InstrumentationSkipReason.NothingToInstrument);
             }
 
             _logger.LogInformation("Assembly instrumented");
@@ -117,7 +117,7 @@ namespace MiniCover.Core.Instrumentation
             instrumentedAssembly.TempAssemblyFile = instrumentedAssemblyFile.FullName;
             instrumentedAssembly.TempPdbFile = instrumentedPdbFile.FullName;
 
-            return instrumentedAssembly;
+            return AssemblyInstrumentationOutcome.Instrumented(instrumentedAssembly);
         }
 
         private string GetMiniCoverTempPath()

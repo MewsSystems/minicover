@@ -138,6 +138,7 @@ namespace MiniCover
             services.AddTransient<IncludeTestsPatternOption>();
             services.AddTransient<ExcludeTestsPatternOption>();
             services.AddTransient<HitsDirectoryOption>();
+            services.AddTransient<FailOnSkippedAssembliesOption>();
             services.AddTransient<CoverageFileOption>();
             services.AddTransient<CoverageLoadedFileOption>();
             services.AddTransient<HtmlOutputDirectoryOption>();

@@ -8,22 +8,26 @@ namespace MiniCover.Core.Model
     {
         private readonly List<InstrumentedAssembly> _assemblies;
         private readonly HashSet<string> _extraAssemblies;
+        private readonly List<SkippedAssembly> _skippedAssemblies;
 
         public InstrumentationResult()
         {
             _assemblies = new List<InstrumentedAssembly>();
             _extraAssemblies = new HashSet<string>();
+            _skippedAssemblies = new List<SkippedAssembly>();
         }
 
         [JsonConstructor]
         protected InstrumentationResult(
             InstrumentedAssembly[] assemblies,
-            string[] extraAssemblies)
+            string[] extraAssemblies,
+            SkippedAssembly[] skippedAssemblies)
         {
             _assemblies = assemblies?.ToList() ?? new List<InstrumentedAssembly>();
             _extraAssemblies = extraAssemblies != null
                 ? new HashSet<string>(extraAssemblies)
                 : new HashSet<string>();
+            _skippedAssemblies = skippedAssemblies?.ToList() ?? new List<SkippedAssembly>();
         }
 
         [JsonProperty(Order = -2)]
@@ -34,6 +38,7 @@ namespace MiniCover.Core.Model
 
         public IEnumerable<InstrumentedAssembly> Assemblies => _assemblies;
         public IEnumerable<string> ExtraAssemblies => _extraAssemblies;
+        public IEnumerable<SkippedAssembly> SkippedAssemblies => _skippedAssemblies;
 
         public void AddInstrumentedAssembly(InstrumentedAssembly instrumentedAssembly)
         {
@@ -43,6 +48,11 @@ namespace MiniCover.Core.Model
         public void AddExtraAssembly(string file)
         {
             _extraAssemblies.Add(file);
+        }
+
+        public void AddSkippedAssembly(string assemblyFile, InstrumentationSkipReason reason)
+        {
+            _skippedAssemblies.Add(new SkippedAssembly { AssemblyFile = assemblyFile, Reason = reason });
         }
 
         public SourceFile[] GetSourceFiles()

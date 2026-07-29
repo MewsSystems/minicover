@@ -88,13 +88,25 @@ namespace MiniCover.Core.Instrumentation
         {
             using (_logger.BeginScope("Checking assembly files {assemblies}", assemblyFiles.Select(f => f.FullName)))
             {
-                var instrumentedAssembly = _assemblyInstrumenter.InstrumentAssemblyFile(
+                var outcome = _assemblyInstrumenter.InstrumentAssemblyFile(
                     context,
                     assemblyFiles.First());
 
-                if (instrumentedAssembly == null)
+                if (outcome.Assembly == null)
+                {
+                    if (outcome.SkipReason.HasValue)
+                    {
+                        foreach (var assemblyFile in assemblyFiles)
+                        {
+                            result.AddSkippedAssembly(assemblyFile.FullName, outcome.SkipReason.Value);
+                        }
+                    }
+
                     return;
-                
+                }
+
+                var instrumentedAssembly = outcome.Assembly;
+
                 _logger.LogTrace("Temporary assembly file: {tempAssemblyFile}", instrumentedAssembly.TempAssemblyFile);
                 _logger.LogTrace("Temporary PDB file: {tempPdbFile}", instrumentedAssembly.TempPdbFile);
 
