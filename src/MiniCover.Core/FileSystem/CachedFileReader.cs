@@ -25,5 +25,15 @@ namespace MiniCover.Core.FileSystem
                 return _fileSystem.File.ReadAllLines(file.FullName);
             });
         }
+
+        public string[] TryReadAllLines(FileInfo file)
+        {
+            // Misses aren't cached: a caller asking whether a file is there wants the answer for
+            // now, not for the first time anyone asked.
+            if (!_fileSystem.File.Exists(file.FullName))
+                return null;
+
+            return ReadAllLines(file);
+        }
     }
 }

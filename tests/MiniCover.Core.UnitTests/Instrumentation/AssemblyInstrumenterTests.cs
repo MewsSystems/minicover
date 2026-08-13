@@ -156,6 +156,24 @@ namespace MiniCover.Core.UnitTests.Instrumentation
             outcome.SkipReason.Should().Be(InstrumentationSkipReason.SourceFilesChanged);
         }
 
+        // A #line directive makes the compiler emit a document for a file it never read, so that
+        // document has no checksum and no file - the same shape as an F# 'unknown' document, but
+        // reachable with any compiler. Here the fileless document's sequence points sit inside a
+        // method that is instrumented, because the method's other documents are ours.
+        [Fact]
+        public void WithDocumentFromLineDirective_ReturnsInstrumentedOutcome()
+        {
+            var (assemblyFile, sourceFile) = CompileFixtureAssembly("Fixture9", lineDirectiveTarget: "Template.tt");
+
+            var context = CreateContext(new[] { sourceFile.FullName });
+
+            var outcome = _assemblyInstrumenter.InstrumentAssemblyFile(context, assemblyFile);
+
+            outcome.SkipReason.Should().BeNull();
+            outcome.Assembly.Should().NotBeNull();
+            outcome.Assembly.Methods.Should().NotBeEmpty();
+        }
+
         [Fact]
         public void WhenAlreadyInstrumented_ReturnsAlreadyInstrumentedSkip()
         {
@@ -205,7 +223,11 @@ namespace MiniCover.Core.UnitTests.Instrumentation
             return _fileSystem.FileInfo.New(strippedAssemblyPath);
         }
 
-        private (IFileInfo assemblyFile, IFileInfo sourceFile) CompileFixtureAssembly(string className, string sourceDir = null, string extraDocumentPath = null)
+        private (IFileInfo assemblyFile, IFileInfo sourceFile) CompileFixtureAssembly(
+            string className,
+            string sourceDir = null,
+            string extraDocumentPath = null,
+            string lineDirectiveTarget = null)
         {
             var sourcePath = Path.Join(sourceDir ?? _tempDir, $"{className}.cs");
             var assemblyPath = Path.Join(_tempDir, $"{className}.dll");
@@ -215,16 +237,30 @@ namespace MiniCover.Core.UnitTests.Instrumentation
             // the checksum embedded in the PDB won't match the one FileHasChanged() computes from disk.
             var noBomUtf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
-            File.WriteAllText(sourcePath, $$"""
-                public class {{className}}
-                {
-                    public void Run()
-                    {
+            var body = lineDirectiveTarget == null
+                ? """
                         int x = 1;
                         if (x > 0)
                         {
                             x++;
                         }
+                """
+                : $$"""
+                        int x = 1;
+                #line 42 "{{lineDirectiveTarget}}"
+                        if (x > 0)
+                        {
+                            x++;
+                        }
+                #line default
+                """;
+
+            File.WriteAllText(sourcePath, $$"""
+                public class {{className}}
+                {
+                    public void Run()
+                    {
+                {{body}}
                     }
                 }
                 """, noBomUtf8);

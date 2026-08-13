@@ -140,7 +140,18 @@ namespace MiniCover.Core.Instrumentation
 
                 var documentUrl = sequencePoint.Document.Url;
 
-                var documentLines = _fileReader.ReadAllLines(new FileInfo(documentUrl));
+                // A method can carry sequence points in a document that matches no file - a
+                // compiler sentinel, or a #line directive pointing at a generator's own input -
+                // and it only takes one such point among the real ones for the method to get here
+                // (IsSource is true if any of its documents is one of ours). There is no code to
+                // read for those points, so leave them uninstrumented instead of failing the run.
+                var documentLines = _fileReader.TryReadAllLines(new FileInfo(documentUrl));
+
+                if (documentLines == null)
+                {
+                    _logger.LogDebug("Skipping sequence point because document {document} has no file", documentUrl);
+                    continue;
+                }
 
                 var code = documentLines.ExtractCode(
                     sequencePoint.StartLine,
