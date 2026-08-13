@@ -1,0 +1,19 @@
+<Project>
+
+  <!--
+    Mews fork metadata shared by all published packages.
+
+    VersionPrefix is the upstream MiniCover version this fork is based on. It is the single
+    source of truth for the prefix - mews-internal-release.ps1 reads it from here and appends
+    the release label and timestamp. Bump it when the fork is rebased onto a newer upstream.
+
+    RepositoryUrl/RepositoryType make NuGet emit the <repository> element in the nuspec, which
+    is what lets RepositoryCommit (passed by the release script) record the published commit.
+  -->
+  <PropertyGroup>
+    <VersionPrefix>3.9.0</VersionPrefix>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/MewsSystems/minicover</RepositoryUrl>
+  </PropertyGroup>
+
+</Project>
