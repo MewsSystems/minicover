@@ -122,8 +122,10 @@ namespace MiniCover.Core.UnitTests.Instrumentation
             outcome.SkipReason.Should().Be(InstrumentationSkipReason.SourceFilesChanged);
         }
 
-        // The F# compiler in .NET SDK 10.0.400 emits a checksum-less document named 'unknown'
-        // alongside the real ones. It matches no file, so it must not make the assembly look stale.
+        // A compiler sentinel sitting alongside the real documents, named after F#'s 'unknown'. It
+        // matches no file, so it must not make the assembly look stale. The sentinel here belongs
+        // to a type that isn't ours, which pins this gate on its own - see
+        // WithDocumentFromLineDirective_ReturnsInstrumentedOutcome for one inside our own method.
         [Fact]
         public void WithChecksumlessDocument_ReturnsInstrumentedOutcome()
         {
@@ -157,9 +159,9 @@ namespace MiniCover.Core.UnitTests.Instrumentation
         }
 
         // A #line directive makes the compiler emit a document for a file it never read, so that
-        // document has no checksum and no file - the same shape as an F# 'unknown' document, but
-        // reachable with any compiler. Here the fileless document's sequence points sit inside a
-        // method that is instrumented, because the method's other documents are ours.
+        // document has no checksum and no file - the same shape as a synthesized-code sentinel, and
+        // what T4, Razor and ANTLR have always emitted. Here the fileless document's sequence points
+        // sit inside a method that is instrumented, because the method's other documents are ours.
         [Fact]
         public void WithDocumentFromLineDirective_ReturnsInstrumentedOutcome()
         {

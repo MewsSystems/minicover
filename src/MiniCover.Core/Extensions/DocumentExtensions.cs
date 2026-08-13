@@ -11,10 +11,10 @@ namespace MiniCover.Core.Extensions
         {
             // The checksum, not the file's presence, decides whether a document can be verified
             // at all - so it has to be asked first. A document with no recorded checksum matches
-            // no file on any machine: it is a compiler sentinel (like the checksum-less document
-            // named 'unknown' that the F# compiler in .NET SDK 10.0.400 emits), so it can never
-            // count as a change. Checking existence first reported it as changed and skipped the
-            // whole assembly.
+            // no file on any machine, so it can never count as a change. Compilers emit them for
+            // synthesized code (F# names one 'unknown') and for #line directives pointing at a
+            // generator's own input; which compiler versions do it is incidental. Checking
+            // existence first reported such a document as changed and skipped the whole assembly.
             using var hasher = CreateHashAlgorithm(document.HashAlgorithm);
 
             if (hasher == null || document.Hash == null || document.Hash.Length == 0)

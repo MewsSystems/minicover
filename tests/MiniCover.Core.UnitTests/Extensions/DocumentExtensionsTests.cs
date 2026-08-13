@@ -35,9 +35,9 @@ namespace MiniCover.UnitTests.Extensions
             document.FileHasChanged().Should().BeTrue();
         }
 
-        // The shape the F# compiler in .NET SDK 10.0.400 emits: a document named 'unknown' with no
-        // checksum. It corresponds to no file on any machine, so it is not a change - it must not be
-        // reported as one just because no such file exists.
+        // A compiler sentinel for synthesized code - F# names one 'unknown'. It corresponds to no
+        // file on any machine, so it is not a change and must not be reported as one just because
+        // no such file exists.
         [Fact]
         public void FileHasChanged_WhenDocumentHasNoChecksumAndFileMissing_ReturnsFalse()
         {
