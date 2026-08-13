@@ -162,12 +162,30 @@ try {
         return
     }
 
-    foreach ($package in $packages) {
-        Invoke-Native { dotnet nuget push $package.FullName --source $Feed --api-key az }
-    }
-
+    # Tag before publishing. The version carries a timestamp, so a retry mints a new one - if
+    # publishing came first, a failure between the two steps would strand a live package whose
+    # commit can never be tagged under the version it was published as. Tagging first makes the
+    # cheap failure the survivable one, and catches a tag that already exists on origin before
+    # anything reaches the feed.
     Invoke-Native { git tag --annotate $tag --message "Mews.MiniCover $version" $commit }
     Invoke-Native { git push origin $tag }
+
+    $published = 0
+    try {
+        foreach ($package in $packages) {
+            Invoke-Native { dotnet nuget push $package.FullName --source $Feed --api-key az }
+            $published++
+        }
+    }
+    catch {
+        if ($published -eq 0) {
+            Write-Warning "Nothing reached the feed. Drop the tag with: git push origin --delete $tag; git tag --delete $tag"
+        }
+        else {
+            Write-Warning "$published of $($packages.Count) packages were published as $version. Keep tag $tag - it points at the commit those packages were built from. Push the rest from $output."
+        }
+        throw
+    }
 
     Write-Host "Published $version and tagged $commit."
 }
