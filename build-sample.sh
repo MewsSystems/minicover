@@ -14,7 +14,9 @@ dotnet build
 dotnet tool restore -v q
 dotnet minicover reset
 echo "# Start Instrument"
-dotnet minicover instrument
+# --fail-on-skipped-assemblies so an assembly that silently drops out of instrumentation fails
+# here, instead of surfacing later as coverage drifting under the report threshold.
+dotnet minicover instrument --fail-on-skipped-assemblies
 echo "# End Instrument"
 dotnet test --no-build
 echo "# Start Uninstrument"
