@@ -62,12 +62,13 @@ namespace MiniCover.UnitTests.Extensions
             document.FileHasChanged().Should().BeFalse();
         }
 
-        // Source-generated documents are checksummed but live only in the PDB, so a missing file is
-        // expected rather than a change.
+        // Generated documents are checksummed but live only in the PDB, so a missing file is expected
+        // rather than a change. Deliberately not named *.g.cs: the embedded source is what makes the
+        // document benign, so the rule has to hold for a name the old exemption never covered.
         [Fact]
         public void FileHasChanged_WhenMissingFileHasSourceEmbeddedInPdb_ReturnsFalse()
         {
-            var document = new Document(Path.Join(Path.GetTempPath(), "obj", "generated", "RegexGenerator.g.cs"))
+            var document = new Document(Path.Join(Path.GetTempPath(), "obj", "generated", "Template.generated.cs"))
             {
                 HashAlgorithm = DocumentHashAlgorithm.SHA256,
                 Hash = ComputeHash("class C {}")
