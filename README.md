@@ -171,3 +171,38 @@ Main interfaces:
 - IHtmlSourceFileReport
 - INCoverReport
 - IOpenCoverReport
+
+## Releasing (Mews fork)
+
+This fork publishes `Mews.MiniCover*` packages to the internal Azure Artifacts feed with
+[mews-internal-release.ps1](mews-internal-release.ps1). Versions are derived by the script, never
+hand-written:
+
+|branch|version|
+|-|-|
+|`mews`|`3.9.0-rel.202608131409`|
+|anything else|`3.9.0-dev.MOD-348.202608131409`|
+
+- `3.9.0` is the upstream version the fork is based on. It lives in
+  [src/Directory.Build.props](src/Directory.Build.props) and is the only place to change it when the
+  fork is rebased onto a newer upstream.
+- `rel` / `dev` says whether it is a release or a branch build. NuGet compares pre-release labels
+  case-insensitively, one dot-separated identifier at a time — `dev` < `rel` and it comes first, so
+  a branch build can never look newer than a release, whatever the ticket key is.
+- The ticket key, taken from the branch name, says where a branch build came from.
+- The timestamp is UTC `yyyyMMddHHmm`, so versions order within each line and nobody has to look up
+  what was published last.
+
+To publish:
+
+```powershell
+./mews-internal-release.ps1
+```
+
+The script refuses to run on an uncommitted tree, records the published commit in the nuspec
+`<repository commit="...">` field and in the assembly informational version, and tags that commit
+with the version it published. Use `-DryRun` to build the packages into `./artifacts` without
+publishing or tagging.
+
+**Consumers must pin an exact version.** A floating `3.9.0-*` range resolves to unmerged branch
+builds.
