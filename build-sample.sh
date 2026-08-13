@@ -2,7 +2,11 @@
 
 set -e
 
-rm -rd ~/.nuget/packages/minicover/1.0.0 || true
+# The package version is fixed at 1.0.0, so the cached copy has to go or the sample would keep
+# restoring whichever build got there first. Ask nuget where its cache is rather than assuming
+# ~/.nuget, which a configured globalPackagesFolder overrides.
+globalPackages=$(dotnet nuget locals global-packages --list | sed 's/^global-packages: //')
+rm -rf "$globalPackages/mews.minicover/1.0.0" || true
 dotnet pack -c Release --output $PWD/sample/nupkgs
 cd sample
 rm -rf ./coverage
